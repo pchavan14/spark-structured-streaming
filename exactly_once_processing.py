@@ -10,8 +10,12 @@ if __name__ == "__main__":
         .config("spark.sql.streaming.schemaInference","true") \
         .getOrCreate()
     
-
-    raw_df = spark.readStream.format("json").option("path","input").load()
+    #read all the files in the directory , the file must be json file if other file format are found you might get an exception
+    raw_df = spark.readStream.format("json") \
+        .option("path","input") \
+        .option("maxFilesPerTrigger","1") \
+        .option("cleanSource","delete") \
+            .load()
 
 
 
@@ -24,7 +28,7 @@ if __name__ == "__main__":
     
 
 
-    #create a writer query and write a  dataframe
+    #create a writer query and write a  dataframe 
 
     invoice_writer_query = exploded_df.writeStream \
                             .format("json") \
