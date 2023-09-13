@@ -1,3 +1,5 @@
+# Get the data from kafka source and store it in a file system 
+
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import from_json, col, expr
 from pyspark.sql.types import StructType, StructField, StringType, LongType, DoubleType, IntegerType, ArrayType
