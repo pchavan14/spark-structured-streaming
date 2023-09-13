@@ -57,3 +57,15 @@ if __name__ == "__main__":
     value_df = kafka_df.select(col("key"),from_json(col("value").cast("string"), schema).alias("value"))
 
     notifications_df = value_df.select("value.InvoiceNumber","value.CustomerCardNo","value.TotalAmount").withColumn("EarnedLoyaltyPoints",col("TotalAmount") * 0.2)
+
+    #convert the dataframe to key and value
+    kafka_target_df = notifications_df.selectExpr("InvoiceNumber as key",
+                                                 """to_json(named_struct(
+                                                 'CustomerCardNo', CustomerCardNo,
+                                                 'TotalAmount', TotalAmount,
+                                                 'EarnedLoyaltyPoints', TotalAmount * 0.2)) as value""")
+
+    #we got an error because kafka accepts key and value pair , but our dataframe has differnet values, if we want to send dataframe to kafka it must have two columns key and value
+    notifications_writer_query = kafka_target_df.writeStream.format("kafka").option("kafka.bootstrap.servers", "localhost:9092").option("topic","notifications").outputMode("append").option("checkpointLocation","chk-point_dir").start()
+
+    notifications_writer_query.awaitTermination()
